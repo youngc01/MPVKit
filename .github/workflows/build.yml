@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check canonical release repository
+        run: |
+          test "${{ github.repository }}" = "mpvkit/MPVKit"
+
       - name: Check version to release
         uses: jannekem/run-python-script-action@v1
         with:
@@ -161,6 +165,31 @@ jobs:
           message: "chore: bump version to ${{ env.RELEASE_VERSION }}"
           push: "origin HEAD:${{ github.ref_name }}"
           
+      - name: Verify required MPVKit release artifacts exist
+        run: |
+          required=(
+            Libavcodec.xcframework.zip
+            Libavdevice.xcframework.zip
+            Libavformat.xcframework.zip
+            Libavfilter.xcframework.zip
+            Libavutil.xcframework.zip
+            Libswresample.xcframework.zip
+            Libswscale.xcframework.zip
+            Libmpv.xcframework.zip
+            Libavcodec-GPL.xcframework.zip
+            Libavdevice-GPL.xcframework.zip
+            Libavformat-GPL.xcframework.zip
+            Libavfilter-GPL.xcframework.zip
+            Libavutil-GPL.xcframework.zip
+            Libswresample-GPL.xcframework.zip
+            Libswscale-GPL.xcframework.zip
+            Libmpv-GPL.xcframework.zip
+          )
+          for artifact in "${required[@]}"; do
+            test -f "./dist/release/${artifact}"
+            test -f "./dist/release/${artifact%.zip}.checksum.txt"
+          done
+
       - name: Upload binary to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -173,4 +202,8 @@ jobs:
           body_path: /tmp/RELEASE_NOTE.txt
           generate_release_notes: true
           fail_on_unmatched_files: true
+
+      - name: Verify published SwiftPM binary targets
+        run: |
+          Scripts/verify-package-binary-targets.sh Package.swift
           

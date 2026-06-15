@@ -62,6 +62,7 @@ jobs:
           python -m pip install meson==1.4.2
           brew install ninja
           brew install rename
+          brew install ripgrep
 
       - name: Setup Xcode to support visionOS
         run: |
